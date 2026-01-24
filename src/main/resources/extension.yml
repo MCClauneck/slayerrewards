@@ -2,10 +2,10 @@
 name: SlayerRewards
 
 # The version of this extension
-version: 1.0.0
+version: ${project_version}
 
 # The full package path to your main class
-main: io.github.mcclauneck.SlayerRewards
+main: ${project_group}.SlayerRewards
 
 # Optional: Ensure MCEconomy is loaded first
 base:

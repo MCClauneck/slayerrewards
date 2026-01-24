@@ -70,3 +70,23 @@ dependencies {
     // Spigot API
     compileOnly 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT'
 }
+
+/**
+ * Process resources and replace placeholders with gradle properties.
+ */
+processResources {
+    // Define the properties you want to inject
+    def props = [
+        'project_version': project.version,
+        'project_group': project.group
+    ]
+    
+    // Tell Gradle to track these properties so it knows when to re-run the task
+    inputs.properties(props)
+    filteringCharset 'UTF-8'
+
+    // Target your specific extension file
+    filesMatching('extension.yml') {
+        expand props
+    }
+}
