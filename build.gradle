@@ -18,7 +18,7 @@ if (releaseTag != null && !releaseTag.isEmpty()) {
     calculatedVersion = releaseTag.replace("v", "")
 } else if (project.hasProperty('project-version')) {
     def baseVersion = project.property('project-version')
-    def iteration = project.hasProperty('project-iteration') ?: "1"
+    def iteration = project.findProperty('project-iteration') ?: "1"
     
     if (isDevBuild && !isDevReleaseBuild) {
         calculatedVersion = "${baseVersion}-${iteration}-${buildNum}-DEV"
