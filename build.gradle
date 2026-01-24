@@ -18,7 +18,7 @@ if (releaseTag != null && !releaseTag.isEmpty()) {
     calculatedVersion = releaseTag.replace("v", "")
 } else if (project.hasProperty('project-version')) {
     def baseVersion = project.property('project-version')
-    def iteration = project.hasProperty('project-iteration') ?: "1"
+    def iteration = project.findProperty('project-iteration') ?: "1"
     
     if (isDevBuild && !isDevReleaseBuild) {
         calculatedVersion = "${baseVersion}-${iteration}-${buildNum}-DEV"
@@ -46,8 +46,8 @@ repositories {
         maven {
             url = uri(mcEngineRepo(repo))
             credentials {
-                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
-                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                username = System.getenv("USER_GITHUB_NAME") ?: System.getenv("GITHUB_ACTOR")
+                password = System.getenv("USER_GITHUB_TOKEN") ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
@@ -65,8 +65,28 @@ repositories {
 dependencies {
     // MCEngine Core Dependencies
     compileOnly 'io.github.mcengine:mcextension:2026.0.2-7'
-    compileOnly 'io.github.mcengine:mceconomy-api:2026.0.0-3'
+    compileOnly 'io.github.mcengine:mceconomy-common:2026.0.0-3'
 
     // Spigot API
     compileOnly 'org.spigotmc:spigot-api:1.21.1-R0.1-SNAPSHOT'
+}
+
+/**
+ * Process resources and replace placeholders with gradle properties.
+ */
+processResources {
+    // Define the properties you want to inject
+    def props = [
+        'project_version': project.version,
+        'project_group': project.group
+    ]
+    
+    // Tell Gradle to track these properties so it knows when to re-run the task
+    inputs.properties(props)
+    filteringCharset 'UTF-8'
+
+    // Target your specific extension file
+    filesMatching('extension.yml') {
+        expand props
+    }
 }

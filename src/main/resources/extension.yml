@@ -1,0 +1,12 @@
+# The unique identifier for this extension
+name: SlayerRewards
+
+# The version of this extension
+version: ${project_version}
+
+# The full package path to your main class
+main: ${project_group}.slayerrewards.SlayerRewards
+
+# Optional: Ensure MCEconomy is loaded first
+base:
+  depend: [MCEconomy]
