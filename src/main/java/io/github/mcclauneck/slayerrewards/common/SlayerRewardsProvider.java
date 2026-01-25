@@ -37,6 +37,15 @@ public class SlayerRewardsProvider implements IReward {
     }
 
     /**
+     * Gets the folder containing mob configuration files.
+     *
+     * @return The mobs folder.
+     */
+    public File getMobsFolder() {
+        return this.mobsFolder;
+    }
+
+    /**
      * Processes the reward transaction.
      * <p>
      * This method calculates the amount, deposits it asynchronously, and callbacks
