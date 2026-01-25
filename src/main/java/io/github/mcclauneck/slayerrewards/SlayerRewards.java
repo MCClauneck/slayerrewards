@@ -4,6 +4,7 @@ import io.github.mcclauneck.slayerrewards.command.SlayerRewardsCommand;
 import io.github.mcclauneck.slayerrewards.common.SlayerRewardsProvider;
 import io.github.mcclauneck.slayerrewards.editor.MobDropEditor;
 import io.github.mcclauneck.slayerrewards.listeners.SlayerRewardsListener;
+import io.github.mcclauneck.slayerrewards.tabcompleter.SlayerRewardsTabCompleter;
 import io.github.mcengine.mcextension.api.IMCExtension;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -13,6 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
@@ -40,12 +42,10 @@ public class SlayerRewards implements IMCExtension {
         this.editor = new MobDropEditor(plugin, provider.getMobsFolder());
 
         // 2. Register Event Listeners
-        // Listener for Mob Kills (Money/Drops)
         plugin.getServer().getPluginManager().registerEvents(
             new SlayerRewardsListener(executor, provider), 
             plugin
         );
-        // Listener for Editor GUI (Clicks/Chat)
         plugin.getServer().getPluginManager().registerEvents(editor, plugin);
 
         // 3. Register Command via Reflection
@@ -64,11 +64,17 @@ public class SlayerRewards implements IMCExtension {
             CommandMap commandMap = (CommandMap) commandMapField.get(Bukkit.getServer());
 
             SlayerRewardsCommand executor = new SlayerRewardsCommand(editor);
+            SlayerRewardsTabCompleter tabCompleter = new SlayerRewardsTabCompleter(provider);
 
             Command cmd = new Command("slayerrewards", "Manage mob drops", "/slayerrewards edit <mob>", Collections.singletonList("slayer")) {
                 @Override
                 public boolean execute(CommandSender sender, String commandLabel, String[] args) {
                     return executor.onCommand(sender, this, commandLabel, args);
+                }
+
+                @Override
+                public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
+                    return tabCompleter.onTabComplete(sender, this, alias, args);
                 }
             };
 
