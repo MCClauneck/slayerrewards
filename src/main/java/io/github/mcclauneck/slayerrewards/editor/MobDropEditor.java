@@ -1,5 +1,6 @@
 package io.github.mcclauneck.slayerrewards.editor;
 
+import io.github.mcclauneck.slayerrewards.editor.util.EditorUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -17,7 +18,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -112,33 +112,22 @@ public class MobDropEditor implements Listener {
 
         // Previous Page Button (Slot 48)
         if (page > 1) {
-            gui.setItem(48, createButton(Material.ARROW, "Previous Page"));
+            gui.setItem(48, EditorUtil.createButton(Material.ARROW, "Previous Page"));
         }
 
         // Next Page Button (Slot 50)
         // Show if we have more items than this page can hold OR if the page is full (allows creating new page)
         if (keys.size() >= (startIndex + itemsPerPage)) {
-            gui.setItem(50, createButton(Material.ARROW, "Next Page"));
+            gui.setItem(50, EditorUtil.createButton(Material.ARROW, "Next Page"));
         }
 
         // Default Drops Toggle (Slot 49)
         boolean cancelDefault = config.getBoolean("cancel_default_drops", false);
-        gui.setItem(49, createButton(cancelDefault ? Material.RED_WOOL : Material.LIME_WOOL,
+        gui.setItem(49, EditorUtil.createButton(cancelDefault ? Material.RED_WOOL : Material.LIME_WOOL,
                 cancelDefault ? "Default Drops: OFF" : "Default Drops: ON"));
 
         activeSessions.put(player.getUniqueId(), new EditorSession(mobName, page));
         player.openInventory(gui);
-    }
-
-    /**
-     * Helper to create simple control buttons.
-     */
-    private ItemStack createButton(Material mat, String name) {
-        ItemStack item = new ItemStack(mat);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.WHITE + name);
-        item.setItemMeta(meta);
-        return item;
     }
 
     /**
@@ -163,23 +152,23 @@ public class MobDropEditor implements Listener {
             if (event.getSlot() == 48 && event.getCurrentItem().getType() == Material.ARROW) {
                 // Page Switch Logic
                 isSwitchingPages.add(player.getUniqueId()); // Prevent session kill
-                savePage(player, session, event.getInventory());
+                EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
                 openEditor(player, session.mobName, session.page - 1);
             } 
             else if (event.getSlot() == 50 && event.getCurrentItem().getType() == Material.ARROW) {
                 // Page Switch Logic
                 isSwitchingPages.add(player.getUniqueId()); // Prevent session kill
-                savePage(player, session, event.getInventory());
+                EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
                 openEditor(player, session.mobName, session.page + 1);
             } 
             else if (event.getSlot() == 49) {
-                toggleDefaultDrops(player, session);
+                EditorUtil.toggleDefaultDrops(mobsFolder, session.mobName());
 
                 File file = new File(mobsFolder, session.mobName.toLowerCase() + ".yml");
                 YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
                 boolean cancelDefault = config.getBoolean("cancel_default_drops", false);
-                
-                event.getClickedInventory().setItem(49, createButton(cancelDefault ? Material.RED_WOOL : Material.LIME_WOOL,
+
+                event.getClickedInventory().setItem(49, EditorUtil.createButton(cancelDefault ? Material.RED_WOOL : Material.LIME_WOOL,
                         cancelDefault ? "Default Drops: OFF" : "Default Drops: ON"));
             }
             return;
@@ -189,15 +178,14 @@ public class MobDropEditor implements Listener {
         if (event.isShiftClick() && event.isRightClick() && event.getSlot() < 45 && event.getClickedInventory() == event.getView().getTopInventory()) {
             if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
                 event.setCancelled(true);
-                
+
                 // Calculate absolute index (Page Offset + Slot)
                 int absoluteIndex = event.getSlot() + ((session.page - 1) * 45);
                 pendingChanceEdit.put(player.getUniqueId(), absoluteIndex);
-                
-                // FIX: Save page state before closing so the item exists in YAML
-                // If we don't save here, 'updateChance' might try to set chance on a non-existent item key
-                savePage(player, session, event.getView().getTopInventory());
-                
+
+                // Save page state before closing so the item exists in YAML
+                EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getView().getTopInventory());
+
                 player.closeInventory();
                 player.sendMessage(ChatColor.GREEN + "Enter drop chance (0-100) in chat:");
             }
@@ -222,7 +210,7 @@ public class MobDropEditor implements Listener {
                 // Check if we are closing to edit chat; if so, don't remove session/save yet
                 if (!pendingChanceEdit.containsKey(player.getUniqueId())) {
                     EditorSession session = activeSessions.remove(player.getUniqueId());
-                    savePage(player, session, event.getInventory());
+                    EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
                     player.sendMessage(ChatColor.GREEN + "Mob drops saved!");
                 }
             }
@@ -248,7 +236,7 @@ public class MobDropEditor implements Listener {
 
                 // Save chance to file directly
                 EditorSession session = activeSessions.get(player.getUniqueId());
-                updateChance(session.mobName, absoluteIndex + 1, chance); // +1 because YAML keys start at 1
+                EditorUtil.updateChance(mobsFolder, session.mobName(), absoluteIndex + 1, chance); // +1 because YAML keys start at 1
 
                 // Re-open editor
                 Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page));
@@ -258,92 +246,6 @@ public class MobDropEditor implements Listener {
                 EditorSession session = activeSessions.get(player.getUniqueId());
                 Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page));
             }
-        }
-    }
-
-    /**
-     * Saves the items in the current page to the YAML file.
-     *
-     * @param player  The player saving.
-     * @param session The active session data.
-     * @param inv     The inventory being saved.
-     */
-    private void savePage(Player player, EditorSession session, Inventory inv) {
-        File file = new File(mobsFolder, session.mobName.toLowerCase() + ".yml");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-
-        int itemsPerPage = 45;
-        int startIndex = (session.page - 1) * itemsPerPage;
-
-        for (int i = 0; i < itemsPerPage; i++) {
-            ItemStack item = inv.getItem(i);
-            int key = startIndex + i + 1; // YAML keys 1...N
-
-            if (item != null && item.getType() != Material.AIR) {
-                // Strip the helper lore (Chance/Divider) before saving to disk
-                ItemStack toSave = item.clone();
-                ItemMeta meta = toSave.getItemMeta();
-                List<String> lore = meta.getLore();
-                
-                if (lore != null && lore.size() >= 3) {
-                    // Remove last 3 lines injected by openEditor
-                    // Logic assumes user didn't modify these exact lines manually
-                    int size = lore.size();
-                    if (lore.get(size - 2).contains("Chance:")) {
-                         lore.remove(size - 1); // Help text
-                         lore.remove(size - 2); // Chance text
-                         lore.remove(size - 3); // Divider
-                    }
-                    meta.setLore(lore);
-                    toSave.setItemMeta(meta);
-                }
-
-                config.set("item_drop." + key + ".metadata", toSave);
-                config.set("item_drop." + key + ".amount", item.getAmount());
-                
-                // Preserve existing chance if present, else default to 100.0
-                if (!config.contains("item_drop." + key + ".chance")) {
-                    config.set("item_drop." + key + ".chance", 100.0);
-                }
-            } else {
-                config.set("item_drop." + key, null); // Remove if empty slot
-            }
-        }
-
-        try {
-            config.save(file);
-            // Refresh provider cache here if implementing caching optimization
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Toggles the 'cancel_default_drops' boolean in the config.
-     */
-    private void toggleDefaultDrops(Player player, EditorSession session) {
-        File file = new File(mobsFolder, session.mobName.toLowerCase() + ".yml");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        boolean current = config.getBoolean("cancel_default_drops", false);
-        config.set("cancel_default_drops", !current);
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Updates the chance value for a specific item index.
-     */
-    private void updateChance(String mobName, int key, double chance) {
-        File file = new File(mobsFolder, mobName.toLowerCase() + ".yml");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        config.set("item_drop." + key + ".chance", chance);
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
