@@ -114,8 +114,8 @@ public class MobDropEditor implements Listener {
         }
 
         // Next Page Button (Slot 50)
-        // Show if we have more items than this page can hold
-        if (keys.size() > (startIndex + itemsPerPage)) {
+        // Show if we have more items than this page can hold OR if the page is full (allows creating new page)
+        if (keys.size() >= (startIndex + itemsPerPage)) {
             gui.setItem(50, createButton(Material.ARROW, "Next Page"));
         }
 
@@ -166,7 +166,13 @@ public class MobDropEditor implements Listener {
                 openEditor(player, session.mobName, session.page + 1);
             } else if (event.getSlot() == 49) {
                 toggleDefaultDrops(player, session);
-                openEditor(player, session.mobName, session.page); // Refresh UI
+
+                File file = new File(mobsFolder, session.mobName.toLowerCase() + ".yml");
+                YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+                boolean cancelDefault = config.getBoolean("cancel_default_drops", false);
+                
+                event.getClickedInventory().setItem(49, createButton(cancelDefault ? Material.RED_WOOL : Material.LIME_WOOL,
+                        cancelDefault ? "Default Drops: OFF" : "Default Drops: ON"));
             }
             return;
         }
