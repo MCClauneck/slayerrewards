@@ -176,6 +176,7 @@ public class MobDropEditor implements Listener {
         // 1. HARD BLOCK all interaction with the bottom row (45-53) regardless of inventory
         if (event.getRawSlot() >= 45 && event.getRawSlot() <= 53) {
             event.setCancelled(true);
+            player.setItemOnCursor(null); // Force cursor clear to prevent visual pick-up
             
             // Only process logic if it's the TOP inventory
             if (event.getClickedInventory() == event.getView().getTopInventory()) {
@@ -184,20 +185,20 @@ public class MobDropEditor implements Listener {
                 if (event.getSlot() == 45 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
                     isSwitchingPages.add(player.getUniqueId());
                     EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
-                    openEditor(player, session.mobName, session.page - 1);
+                    Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page - 1));
                 } 
                 else if (event.getSlot() == 53 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
                     isSwitchingPages.add(player.getUniqueId());
                     EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
-                    openEditor(player, session.mobName, session.page + 1);
+                    Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page + 1));
                 } 
                 else if (event.getSlot() == 49) {
                     EditorUtil.toggleDefaultDrops(mobsFolder, session.mobName());
-                    openEditor(player, session.mobName, session.page);
+                    Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page));
                 }
                 else if (event.getSlot() == 48 && session.page == 1) {
                     cycleCurrency(session.mobName);
-                    openEditor(player, session.mobName, session.page);
+                    Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page));
                 }
                 else if (event.getSlot() == 50 && session.page == 1) {
                     pendingMoneyEdit.add(player.getUniqueId());
