@@ -1,6 +1,7 @@
 package io.github.mcclauneck.slayerrewards.editor;
 
 import io.github.mcclauneck.slayerrewards.editor.util.EditorUtil;
+import io.github.mcengine.mceconomy.api.enums.CurrencyType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -50,7 +51,7 @@ public class MobDropEditor implements Listener {
     /**
      * Constructs a new MobDropEditor.
      *
-     * @param plugin     The host plugin instance.
+     * @param plugin      The host plugin instance.
      * @param mobsFolder The directory containing mob YML files.
      */
     public MobDropEditor(JavaPlugin plugin, File mobsFolder) {
@@ -137,14 +138,18 @@ public class MobDropEditor implements Listener {
         }
 
         // Currency Toggle (Slot 48) - Now on every page
-        String currency = config.getString("currency", "coin").toLowerCase();
+        String currencyStr = config.getString("currency", "coin");
+        CurrencyType currency = CurrencyType.fromName(currencyStr);
+        if (currency == null) currency = CurrencyType.COIN;
+
+        // Updated: Map Enum to Material
         Material curMat = switch (currency) {
-            case "copper" -> Material.COPPER_BLOCK;
-            case "silver" -> Material.IRON_BLOCK;
-            case "gold" -> Material.GOLD_BLOCK;
-            default -> Material.SUNFLOWER;
+            case COPPER -> Material.COPPER_BLOCK;
+            case SILVER -> Material.IRON_BLOCK;
+            case GOLD -> Material.GOLD_BLOCK;
+            default -> Material.SUNFLOWER; // COIN
         };
-        gui.setItem(48, EditorUtil.createButton(curMat, "Currency: " + currency.toUpperCase()));
+        gui.setItem(48, EditorUtil.createButton(curMat, "Currency: " + currency.getName().toUpperCase()));
 
         // Money Amount Editor (Slot 50) - Now on every page
         String amount = config.getString("amount", "0");
@@ -242,14 +247,17 @@ public class MobDropEditor implements Listener {
     private void cycleCurrency(String mobName) {
         File file = new File(mobsFolder, mobName.toLowerCase() + ".yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        String current = config.getString("currency", "coin").toLowerCase();
-        String next = switch (current) {
-            case "coin" -> "copper";
-            case "copper" -> "silver";
-            case "silver" -> "gold";
-            default -> "coin";
-        };
-        config.set("currency", next);
+        
+        String currentStr = config.getString("currency", "coin");
+        CurrencyType current = CurrencyType.fromName(currentStr);
+        if (current == null) current = CurrencyType.COIN;
+        
+        // Updated: Cycle using Enum values to be dynamic and safe
+        CurrencyType[] values = CurrencyType.values();
+        int nextIndex = (current.ordinal() + 1) % values.length;
+        CurrencyType next = values[nextIndex];
+        
+        config.set("currency", next.getName());
         try { config.save(file); } catch (Exception ignored) {}
     }
 

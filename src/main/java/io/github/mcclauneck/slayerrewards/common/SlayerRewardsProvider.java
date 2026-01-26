@@ -1,6 +1,7 @@
 package io.github.mcclauneck.slayerrewards.common;
 
 import io.github.mcclauneck.slayerrewards.api.IReward;
+import io.github.mcengine.mceconomy.api.enums.CurrencyType;
 import io.github.mcengine.mceconomy.common.MCEconomyProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -60,8 +61,9 @@ public class SlayerRewardsProvider implements IReward {
         int amount = getMoney(mobType);
         if (amount <= 0) return;
 
-        String currency = getCurrency(mobType);
+        CurrencyType currency = getCurrency(mobType);
 
+        // Updated: Pass CurrencyType enum instead of string
         MCEconomyProvider.getInstance()
             .addCoin(playerUuid, "PLAYER", currency, amount)
             .thenAccept(success -> {
@@ -81,14 +83,14 @@ public class SlayerRewardsProvider implements IReward {
      * @param amount   The amount of money gained.
      * @param currency The currency type gained.
      */
-    private void spawnHologram(Location loc, int amount, String currency) {
+    private void spawnHologram(Location loc, int amount, CurrencyType currency) {
         // Offset location slightly up so it doesn't spawn in the ground
         Location spawnLoc = loc.add(0, 1.5, 0);
 
         // Spawn TextDisplay (1.19.4+ feature, perfect for 1.21)
         TextDisplay display = loc.getWorld().spawn(spawnLoc, TextDisplay.class, text -> {
             text.setText(ChatColor.translateAlternateColorCodes('&', 
-                "&a+" + amount + " " + currency));
+                "&a+" + amount + " " + currency.getName()));
             text.setBillboard(Display.Billboard.CENTER); // Always face player
             text.setViewRange(10.0f);
             text.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // Transparent bg
@@ -138,12 +140,17 @@ public class SlayerRewardsProvider implements IReward {
      * Reads the mob configuration file to determine the currency type.
      *
      * @param mobType The name of the mob file to read.
-     * @return The currency string (e.g., "coin", "gold"). Defaults to "coin".
+     * @return The CurrencyType enum. Defaults to COIN.
      */
-    private String getCurrency(String mobType) {
+    private CurrencyType getCurrency(String mobType) {
         File mobFile = new File(mobsFolder, mobType.toLowerCase() + ".yml");
-        if (!mobFile.exists()) return "coin";
+        if (!mobFile.exists()) return CurrencyType.COIN;
+        
         YamlConfiguration config = YamlConfiguration.loadConfiguration(mobFile);
-        return config.getString("currency", "coin");
+        String currencyStr = config.getString("currency", "coin");
+        
+        // Updated: Convert string to Enum
+        CurrencyType type = CurrencyType.fromName(currencyStr);
+        return type != null ? type : CurrencyType.COIN;
     }
 }
