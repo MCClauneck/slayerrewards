@@ -40,22 +40,15 @@ public class SlayerRewards implements IMCExtension {
      */
     @Override
     public void onLoad(JavaPlugin plugin, Executor executor) {
-        // 1. Initialize Logic Providers
         this.provider = new SlayerRewardsProvider(plugin);
-        
-        // Create the example file immediately after provider (and folder) setup
-        createExampleFile(plugin);
-        
         this.editor = new MobDropEditor(plugin, provider.getMobsFolder());
 
-        // 2. Register Event Listeners
         plugin.getServer().getPluginManager().registerEvents(
             new SlayerRewardsListener(executor, provider), 
             plugin
         );
         plugin.getServer().getPluginManager().registerEvents(editor, plugin);
 
-        // 3. Register Command via Reflection
         registerCommand(plugin);
         
         plugin.getLogger().info("[SlayerRewards] Extension loaded successfully.");
@@ -89,7 +82,6 @@ public class SlayerRewards implements IMCExtension {
 
         } catch (Exception e) {
             plugin.getLogger().severe("Failed to register /slayerrewards command: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -104,39 +96,5 @@ public class SlayerRewards implements IMCExtension {
         this.provider = null;
         this.editor = null;
         plugin.getLogger().info("[SlayerRewards] Extension disabled.");
-    }
-
-    /**
-     * Creates a default 'zombie.yml' file if no configuration exists.
-     * <p>
-     * This serves as a template for administrators to understand how to configure
-     * money rewards and drop settings.
-     * </p>
-     *
-     * @param plugin The host plugin instance for logging.
-     */
-    private void createExampleFile(JavaPlugin plugin) {
-        File folder = provider.getMobsFolder();
-        File file = new File(folder, "zombie.yml");
-
-        if (file.exists()) return;
-
-        try (FileWriter writer = new FileWriter(file)) {
-            String content = """
-                    currency: coin
-                    amount: 100-200
-                    
-                    # If true, vanilla drops (Rotten Flesh, etc.) will be removed.
-                    cancel_default_drops: false
-                    
-                    # Custom items are best added using the in-game GUI.
-                    # Command: /slayerrewards edit zombie
-                    item_drop:
-                    """;
-            writer.write(content);
-            plugin.getLogger().info("Created example mob config: zombie.yml");
-        } catch (IOException e) {
-            plugin.getLogger().severe("Failed to create example file: " + e.getMessage());
-        }
     }
 }
