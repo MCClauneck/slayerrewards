@@ -173,8 +173,8 @@ public class MobDropEditor implements Listener {
         String title = event.getView().getTitle();
         if (!title.startsWith("Edit Drop:")) return;
 
-        // Block all interactions with the control row (Slots 45-53)
-        if (event.getRawSlot() >= 45 && event.getRawSlot() <= 53) {
+        // Block all interactions with the control row (Slots 45-53 in the top inventory)
+        if (event.getClickedInventory() == event.getView().getTopInventory() && event.getSlot() >= 45) {
             event.setCancelled(true);
             
             EditorSession session = activeSessions.get(player.getUniqueId());
@@ -206,10 +206,10 @@ public class MobDropEditor implements Listener {
             return;
         }
 
-        // Block Shift-Clicks from the player's inventory that might land in the control row
-        if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY && event.getClickedInventory() == event.getView().getBottomInventory()) {
-             event.setCancelled(true);
-             return;
+        // Block shift-clicking from player's inventory to avoid items ending up in control slots
+        if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+            event.setCancelled(true);
+            return;
         }
 
         // Handle Chance Editing (Shift + Right Click on an item)
