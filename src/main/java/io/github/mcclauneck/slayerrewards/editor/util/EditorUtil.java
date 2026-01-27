@@ -1,15 +1,20 @@
 package io.github.mcclauneck.slayerrewards.editor.util;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Utility class for MobDropEditor operations.
@@ -37,6 +42,34 @@ public class EditorUtil {
             meta.setDisplayName(ChatColor.WHITE + name);
             item.setItemMeta(meta);
         }
+        return item;
+    }
+
+    /**
+     * Creates a player head button with a custom Base64 texture.
+     *
+     * @param b64  The Base64 texture string.
+     * @param name The display name of the button.
+     * @return The constructed ItemStack.
+     */
+    public static ItemStack createSkullButton(String b64, String name) {
+        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+        if (meta == null) return item;
+
+        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        profile.getProperties().put("textures", new Property("textures", b64));
+
+        try {
+            Field profileField = meta.getClass().getDeclaredField("profile");
+            profileField.setAccessible(true);
+            profileField.set(meta, profile);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        meta.setDisplayName(ChatColor.WHITE + name);
+        item.setItemMeta(meta);
         return item;
     }
 

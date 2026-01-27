@@ -130,11 +130,11 @@ public class MobDropEditor implements Listener {
 
         // Navigation Buttons
         if (page > 1) {
-            gui.setItem(45, EditorUtil.createButton(Material.ARROW, "Previous Page"));
+            gui.setItem(45, EditorUtil.createSkullButton("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGNlYzgwN2RjYzE0MzYzMzRmZDRkYzlhYjM0OTM0MmY2YzUyYzllN2IyYmYzNDY3MTJkYjcyYTBkNmQ3YTQifX19", "Previous Page"));
         }
         boolean pageFull = (gui.getItem(44) != null);
         if (maxKey > (page * itemsPerPage) || pageFull) {
-            gui.setItem(53, EditorUtil.createButton(Material.ARROW, "Next Page"));
+            gui.setItem(53, EditorUtil.createSkullButton("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTAxYzdiNTcyNjE3ODk3NGIzYjNhMDFiNDJhNTkwZTU0MzY2MDI2ZmQ0MzgwOGYyYTc4NzY0ODg0M2E3ZjVhIn19fQ==", "Next Page"));
         }
 
         // Currency Toggle (Slot 48) - Now on every page
@@ -204,13 +204,13 @@ public class MobDropEditor implements Listener {
             if (event.getClickedInventory() == event.getView().getTopInventory()) {
                 EditorSession session = activeSessions.get(player.getUniqueId());
 
-                if (event.getSlot() == 45 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
+                if (event.getSlot() == 45 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.PLAYER_HEAD) {
                     isSwitchingPages.add(player.getUniqueId());
                     EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
                     player.closeInventory();
                     Bukkit.getScheduler().runTask(plugin, () -> openEditor(player, session.mobName, session.page - 1));
                 } 
-                else if (event.getSlot() == 53 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
+                else if (event.getSlot() == 53 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.PLAYER_HEAD) {
                     isSwitchingPages.add(player.getUniqueId());
                     EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
                     player.closeInventory();
