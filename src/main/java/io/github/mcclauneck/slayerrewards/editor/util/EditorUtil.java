@@ -1,7 +1,6 @@
 package io.github.mcclauneck.slayerrewards.editor.util;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -9,10 +8,14 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,17 +60,22 @@ public class EditorUtil {
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta == null) return item;
 
-        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
-        profile.getProperties().put("textures", new Property("textures", b64));
+        // Use native Bukkit PlayerProfile API (No AuthLib needed)
+        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+        PlayerTextures textures = profile.getTextures();
 
         try {
-            Field profileField = meta.getClass().getDeclaredField("profile");
-            profileField.setAccessible(true);
-            profileField.set(meta, profile);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+            // Decode Base64 to get the URL inside the JSON
+            String decoded = new String(Base64.getDecoder().decode(b64));
+            // Simple extraction of the URL from the skin JSON
+            String urlString = decoded.substring(decoded.indexOf("http"), decoded.lastIndexOf("\""));
+            textures.setSkin(new URL(urlString));
+            profile.setTextures(textures);
+        } catch (MalformedURLException | IllegalArgumentException e) {
             e.printStackTrace();
         }
 
+        meta.setOwnerProfile(profile);
         meta.setDisplayName(ChatColor.WHITE + name);
         item.setItemMeta(meta);
         return item;
@@ -78,7 +86,7 @@ public class EditorUtil {
      *
      * @param mobsFolder The directory containing mob files.
      * @param mobName    The name of the mob.
-     * @param page       The current page number.
+     * @param page        The current page number.
      * @param inv        The inventory being saved.
      */
     public static void savePage(File mobsFolder, String mobName, int page, Inventory inv) {
