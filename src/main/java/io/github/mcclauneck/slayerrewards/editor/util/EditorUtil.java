@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
@@ -102,7 +103,8 @@ public class EditorUtil {
 
             if (item != null && item.getType() != Material.AIR) {
                 // Strip the helper lore (Chance/Divider) before saving to disk
-                ItemStack toSave = item.clone();
+                // Create a FRESH item to avoid craftitemstack issues
+                ItemStack toSave = new ItemStack(item); 
                 ItemMeta meta = toSave.getItemMeta();
                 List<String> lore = meta.getLore();
 
@@ -118,7 +120,7 @@ public class EditorUtil {
                     toSave.setItemMeta(meta);
                 }
 
-                config.set("item_drop." + key + ".metadata", toSave);
+                config.set("item_drop." + key + ".metadata", itemStackToBase64(toSave));
                 config.set("item_drop." + key + ".amount", item.getAmount());
 
                 // Preserve existing chance if present, else default to 100.0
@@ -171,6 +173,37 @@ public class EditorUtil {
             config.save(file);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Serializes an ItemStack to a Base64 string using YAML serialization.
+     *
+     * @param item The item to serialize.
+     * @return The Base64 encoded string.
+     */
+    public static String itemStackToBase64(ItemStack item) {
+        YamlConfiguration tempConfig = new YamlConfiguration();
+        tempConfig.set("i", item);
+        String yamlString = tempConfig.saveToString();
+        return Base64.getEncoder().encodeToString(yamlString.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Deserializes a Base64 string back into an ItemStack using YAML deserialization.
+     *
+     * @param data The Base64 encoded string.
+     * @return The deserialized ItemStack, or null if invalid.
+     */
+    public static ItemStack itemStackFromBase64(String data) {
+        try {
+            String yamlString = new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8);
+            YamlConfiguration tempConfig = new YamlConfiguration();
+            tempConfig.loadFromString(yamlString);
+            return tempConfig.getItemStack("i");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

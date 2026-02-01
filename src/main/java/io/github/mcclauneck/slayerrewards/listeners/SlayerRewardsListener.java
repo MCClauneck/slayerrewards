@@ -1,6 +1,7 @@
 package io.github.mcclauneck.slayerrewards.listeners;
 
 import io.github.mcclauneck.slayerrewards.common.SlayerRewardsProvider;
+import io.github.mcclauneck.slayerrewards.editor.util.EditorUtil;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -102,10 +103,18 @@ public class SlayerRewardsListener implements Listener {
             double chance = section.getDouble(key + ".chance", 100.0);
             if (ThreadLocalRandom.current().nextDouble() * 100 < chance) {
                 
-                ItemStack item = section.getItemStack(key + ".metadata");
-                if (item != null) {
-                    // Add to the drops list naturally
-                    event.getDrops().add(item);
+                String base64 = section.getString(key + ".metadata");
+                if (base64 != null && !base64.isEmpty()) {
+                    ItemStack item = EditorUtil.itemStackFromBase64(base64);
+                    
+                    if (item != null) {
+                        // Ensure correct amount is set if overridden in config
+                        int amount = section.getInt(key + ".amount", item.getAmount());
+                        item.setAmount(amount);
+                        
+                        // Add to the drops list naturally
+                        event.getDrops().add(item);
+                    }
                 }
             }
         }

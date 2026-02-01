@@ -103,11 +103,21 @@ public class MobDropEditor implements Listener {
         for (int i = 0; i < itemsPerPage; i++) {
             int currentKey = startKey + i;
 
-            // Optimization: checking section != null once and using getItemStack directly avoids redundant lookups
-            ItemStack item = (section != null) ? section.getItemStack(currentKey + ".metadata") : null;
+            // Load item from Base64 string
+            String base64 = (section != null) ? section.getString(currentKey + ".metadata") : null;
+            ItemStack item = null;
+            
+            if (base64 != null && !base64.isEmpty()) {
+                item = EditorUtil.itemStackFromBase64(base64);
+            }
             
             if (item != null) {
-                double chance = section.getDouble(currentKey + ".chance", 100.0);
+                // Ensure amount is synchronized if stored separately
+                if (section != null) {
+                    item.setAmount(section.getInt(currentKey + ".amount", item.getAmount()));
+                }
+
+                double chance = section != null ? section.getDouble(currentKey + ".chance", 100.0) : 100.0;
                 ItemMeta meta = item.getItemMeta();
                 List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
                 lore.add(ChatColor.YELLOW + "----------------");
