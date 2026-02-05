@@ -1,5 +1,6 @@
 package io.github.mcclauneck.slayerrewards.editor.util;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,7 +12,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
 import java.io.File;
@@ -64,9 +64,9 @@ public class EditorUtil {
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta == null) return item;
 
-        // Use modern Bukkit API with name to avoid deprecation warning (1.18.1+)
-        // UUID is necessary; name is nullable or empty for textures
-        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID(), ""); 
+        // Use modern Paper API to avoid PlayerProfile deprecation warnings
+        // Bukkit.createProfile returns the com.destroystokyo...PlayerProfile
+        PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID(), "");
         PlayerTextures textures = profile.getTextures();
 
         try {
@@ -80,7 +80,8 @@ public class EditorUtil {
             e.printStackTrace();
         }
 
-        meta.setOwnerProfile(profile);
+        // Use setPlayerProfile (Paper) instead of deprecated setOwnerProfile (Bukkit)
+        meta.setPlayerProfile(profile);
         meta.displayName(name.colorIfAbsent(NamedTextColor.WHITE));
         item.setItemMeta(meta);
         return item;

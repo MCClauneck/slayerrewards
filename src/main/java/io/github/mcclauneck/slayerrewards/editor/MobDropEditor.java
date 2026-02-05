@@ -83,9 +83,12 @@ public class MobDropEditor implements Listener {
 
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         
-        Inventory gui = Bukkit.createInventory(null, 54, Component.translatable("mcclauneck.slayerrewards.editor.title", 
+        // Translatable Title: Edit Drop: %s | P%s
+        Component title = Component.translatable("mcclauneck.slayerrewards.editor.title", 
             Component.text(mobName), 
-            Component.text(page)));
+            Component.text(page));
+
+        Inventory gui = Bukkit.createInventory(null, 54, title);
 
         // Load Items
         ConfigurationSection section = config.getConfigurationSection("item_drop");
@@ -203,7 +206,7 @@ public class MobDropEditor implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (!activeSessions.containsKey(player.getUniqueId())) return;
 
-        // Verify it's an editor session before proceeding (Title check removal optimizes unused var issue)
+        // Verify it's an editor session before proceeding
         EditorSession session = activeSessions.get(player.getUniqueId());
 
         if (event.getView().getTopInventory() != event.getClickedInventory() 
