@@ -3,8 +3,9 @@ package io.github.mcclauneck.slayerrewards.common;
 import io.github.mcclauneck.slayerrewards.api.IReward;
 import io.github.mcengine.mceconomy.api.enums.CurrencyType;
 import io.github.mcengine.mceconomy.common.MCEconomyProvider;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
@@ -79,7 +80,7 @@ public class SlayerRewardsProvider implements IReward {
     /**
      * Spawns a temporary TextDisplay entity at the drop location.
      *
-     * @param loc      The base location of the mob's death.
+     * @param loc    The base location of the mob's death.
      * @param amount   The amount of money gained.
      * @param currency The currency type gained.
      */
@@ -89,8 +90,13 @@ public class SlayerRewardsProvider implements IReward {
 
         // Spawn TextDisplay (1.19.4+ feature, perfect for 1.21)
         TextDisplay display = loc.getWorld().spawn(spawnLoc, TextDisplay.class, text -> {
-            text.setText(ChatColor.translateAlternateColorCodes('&', 
-                "&a+" + amount + " " + currency.getName()));
+            text.text(Component.text()
+                .append(Component.text("+", NamedTextColor.GREEN))
+                .append(Component.text(amount, NamedTextColor.GREEN))
+                .append(Component.space())
+                .append(Component.text(currency.getName(), NamedTextColor.GREEN))
+                .build());
+            
             text.setBillboard(Display.Billboard.CENTER); // Always face player
             text.setViewRange(10.0f);
             text.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0)); // Transparent bg

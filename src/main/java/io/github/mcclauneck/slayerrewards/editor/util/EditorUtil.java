@@ -1,7 +1,11 @@
 package io.github.mcclauneck.slayerrewards.editor.util;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
@@ -39,11 +43,11 @@ public class EditorUtil {
      * @param name The display name of the button.
      * @return The constructed ItemStack.
      */
-    public static ItemStack createButton(Material mat, String name) {
+    public static ItemStack createButton(Material mat, Component name) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(ChatColor.WHITE + name);
+            meta.displayName(name.colorIfAbsent(NamedTextColor.WHITE));
             item.setItemMeta(meta);
         }
         return item;
@@ -56,7 +60,7 @@ public class EditorUtil {
      * @param name The display name of the button.
      * @return The constructed ItemStack.
      */
-    public static ItemStack createSkullButton(String b64, String name) {
+    public static ItemStack createSkullButton(String b64, Component name) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta == null) return item;
@@ -77,9 +81,47 @@ public class EditorUtil {
         }
 
         meta.setOwnerProfile(profile);
-        meta.setDisplayName(ChatColor.WHITE + name);
+        meta.displayName(name.colorIfAbsent(NamedTextColor.WHITE));
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * Removes the editor helper lore (Divider, Chance, Edit Hint) from the list.
+     * Loops until all instances are removed to clean up existing duplicates.
+     *
+     * @param lore The lore list to clean.
+     */
+    public static void cleanLore(List<Component> lore) {
+        if (lore == null || lore.isEmpty()) return;
+
+        // Loop to strip multiple stacks if they exist
+        while (lore.size() >= 3) {
+            int i = lore.size();
+            Component line3 = lore.get(i - 1); // Edit Hint
+            // We check the last line. If it matches our hint, we assume the previous 2 are also ours.
+            
+            boolean match = false;
+            // Check by Key (Reliable for Component based items)
+            if (line3 instanceof TranslatableComponent tc && tc.key().equals("slayerrewards.editor.lore.edit_hint")) {
+                match = true;
+            }
+            // Check by Text (Fallback if serialized/deserialized differently)
+            else {
+                String plain = PlainTextComponentSerializer.plainText().serialize(line3);
+                if (plain.contains("Shift+Right Click")) {
+                    match = true;
+                }
+            }
+
+            if (match) {
+                lore.remove(i - 1); // Hint
+                lore.remove(i - 2); // Chance
+                lore.remove(i - 3); // Divider
+            } else {
+                break; // Stop if the last line isn't ours
+            }
+        }
     }
 
     /**
@@ -87,7 +129,7 @@ public class EditorUtil {
      *
      * @param mobsFolder The directory containing mob files.
      * @param mobName    The name of the mob.
-     * @param page        The current page number.
+     * @param page       The current page number.
      * @param inv        The inventory being saved.
      */
     public static void savePage(File mobsFolder, String mobName, int page, Inventory inv) {
@@ -102,21 +144,14 @@ public class EditorUtil {
             int key = startIndex + i + 1; // YAML keys 1...N
 
             if (item != null && item.getType() != Material.AIR) {
-                // Strip the helper lore (Chance/Divider) before saving to disk
-                // Create a FRESH item to avoid craftitemstack issues
+                // Create a FRESH item copy to modify lore without affecting the GUI item (optional safety)
                 ItemStack toSave = new ItemStack(item); 
                 ItemMeta meta = toSave.getItemMeta();
-                List<String> lore = meta.getLore();
+                List<Component> lore = meta.lore();
 
-                if (lore != null && lore.size() >= 3) {
-                    // Remove last 3 lines injected by openEditor
-                    int size = lore.size();
-                    if (lore.get(size - 2).contains("Chance:")) {
-                        lore.remove(size - 1); // Help text
-                        lore.remove(size - 2); // Chance text
-                        lore.remove(size - 3); // Divider
-                    }
-                    meta.setLore(lore);
+                if (lore != null) {
+                    cleanLore(lore); // Robust cleanup using shared logic
+                    meta.lore(lore);
                     toSave.setItemMeta(meta);
                 }
 

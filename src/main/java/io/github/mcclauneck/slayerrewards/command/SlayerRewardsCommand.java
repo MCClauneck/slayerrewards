@@ -1,7 +1,8 @@
 package io.github.mcclauneck.slayerrewards.command;
 
 import io.github.mcclauneck.slayerrewards.editor.MobDropEditor;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -45,12 +46,12 @@ public class SlayerRewardsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+            sender.sendMessage(Component.translatable("msg.only_players", NamedTextColor.RED));
             return true;
         }
 
         if (!player.hasPermission("slayerrewards.admin")) {
-            player.sendMessage(ChatColor.RED + "No permission.");
+            player.sendMessage(Component.translatable("msg.permission.denied", NamedTextColor.RED));
             return true;
         }
 
@@ -69,7 +70,7 @@ public class SlayerRewardsCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(ChatColor.RED + "Usage: /slayerrewards edit <mob> [page]");
+        player.sendMessage(Component.translatable("slayerrewards.command.usage", NamedTextColor.RED));
         return true;
     }
 }
