@@ -103,7 +103,7 @@ public class EditorUtil {
             
             boolean match = false;
             // Check by Key (Reliable for Component based items)
-            if (line3 instanceof TranslatableComponent tc && tc.key().equals("slayerrewards.editor.lore.edit_hint")) {
+            if (line3 instanceof TranslatableComponent tc && tc.key().equals("mcclauneck.slayerrewards.editor.lore.edit_hint")) {
                 match = true;
             }
             // Check by Text (Fallback if serialized/deserialized differently)

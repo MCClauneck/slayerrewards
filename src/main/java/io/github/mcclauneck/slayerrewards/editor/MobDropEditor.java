@@ -83,7 +83,7 @@ public class MobDropEditor implements Listener {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         
         // Translatable Title: Edit Drop: %s | P%s
-        Component title = Component.translatable("slayerrewards.editor.title", 
+        Component title = Component.translatable("mcclauneck.slayerrewards.editor.title", 
             Component.text(mobName), 
             Component.text(page));
 
@@ -132,9 +132,9 @@ public class MobDropEditor implements Listener {
                 EditorUtil.cleanLore(lore);
 
                 lore.add(Component.text("----------------", NamedTextColor.YELLOW));
-                lore.add(Component.translatable("slayerrewards.editor.lore.chance", NamedTextColor.GOLD, 
+                lore.add(Component.translatable("mcclauneck.slayerrewards.editor.lore.chance", NamedTextColor.GOLD, 
                     Component.text(chance + "%")));
-                lore.add(Component.translatable("slayerrewards.editor.lore.edit_hint", NamedTextColor.GRAY));
+                lore.add(Component.translatable("mcclauneck.slayerrewards.editor.lore.edit_hint", NamedTextColor.GRAY));
                 
                 meta.lore(lore);
                 item.setItemMeta(meta);
@@ -154,12 +154,12 @@ public class MobDropEditor implements Listener {
         // Navigation Buttons
         if (page > 1) {
             gui.setItem(45, EditorUtil.createSkullButton("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGNlYzgwN2RjYzE0MzYzMzRmZDRkYzlhYjM0OTM0MmY2YzUyYzllN2IyYmYzNDY3MTJkYjcyYTBkNmQ3YTQifX19", 
-                Component.translatable("slayerrewards.editor.btn.previous")));
+                Component.translatable("mcclauneck.slayerrewards.editor.btn.previous")));
         }
         boolean pageFull = (gui.getItem(44) != null);
         if (maxKey > (page * itemsPerPage) || pageFull) {
             gui.setItem(53, EditorUtil.createSkullButton("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTAxYzdiNTcyNjE3ODk3NGIzYjNhMDFiNDJhNTkwZTU0MzY2MDI2ZmQ0MzgwOGYyYTc4NzY0ODg0M2E3ZjVhIn19fQ==", 
-                Component.translatable("slayerrewards.editor.btn.next")));
+                Component.translatable("mcclauneck.slayerrewards.editor.btn.next")));
         }
 
         // Currency Toggle (Slot 48) - Now using custom skulls
@@ -174,22 +174,22 @@ public class MobDropEditor implements Listener {
             default -> "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWFmMGQ4ZDc5NGEzYTRhNWUyMGE1MjkyZWQyNTUxMzRmNzZkNGYzYTU1NTZmYzdmNDI2ZDI3YjI0NzQ3NGQ2NyJ9fX0=";
         };
         gui.setItem(48, EditorUtil.createSkullButton(curB64, 
-            Component.translatable("slayerrewards.editor.btn.currency", Component.text(currency.getName().toUpperCase()))));
+            Component.translatable("mcclauneck.slayerrewards.editor.btn.currency", Component.text(currency.getName().toUpperCase()))));
 
         // Money Amount Editor (Slot 50)
         String amount = config.getString("amount", "0");
         gui.setItem(50, EditorUtil.createButton(Material.PAPER, 
-            Component.translatable("slayerrewards.editor.btn.reward", Component.text(amount))));
+            Component.translatable("mcclauneck.slayerrewards.editor.btn.reward", Component.text(amount))));
 
         // Default Drops Toggle (Slot 49)
         boolean cancelDefault = config.getBoolean("cancel_default_drops", false);
         String toggleB64 = cancelDefault ? "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZWFmMjU4ZGI3MjEzMGJmZDk3ZDIxOGM4OTRiYTA4MTQ5NmQyNGQ4NTZkYzYwNDFkMTk2MDZmZmZiNGFiZjJhYyJ9fX0=" : "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzBkOTY5Y2Q4YzhiMjkxNmIyNmExOTcyNTNlM2FkZmU5ODUzNzIwNDk0ZjIyYmUxOWEwODNiZjE4NGY5YzJiYyJ9fX0=";
         gui.setItem(49, EditorUtil.createSkullButton(toggleB64, 
-            Component.translatable(cancelDefault ? "slayerrewards.editor.btn.defaults.off" : "slayerrewards.editor.btn.defaults.on")));
+            Component.translatable(cancelDefault ? "mcclauneck.slayerrewards.editor.btn.defaults.off" : "mcclauneck.slayerrewards.editor.btn.defaults.on")));
 
         // Save & Reload (Slot 52)
         gui.setItem(52, EditorUtil.createSkullButton("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTc0MjgxZjk2NjlmMmNkY2Y3ODQ4NDQ4YTViYjYyODIzMmVlYTJiZmJkZmM3ZDRmMjBiZGE1MDMzZDAzMzY2YSJ9fX0=", 
-            Component.translatable("slayerrewards.editor.btn.save")));
+            Component.translatable("mcclauneck.slayerrewards.editor.btn.save")));
 
         activeSessions.put(player.getUniqueId(), new EditorSession(mobName, page));
         player.openInventory(gui);
@@ -229,7 +229,7 @@ public class MobDropEditor implements Listener {
                 pendingChanceEdit.put(player.getUniqueId(), absoluteIndex);
                 
                 player.closeInventory();
-                player.sendMessage(Component.translatable("slayerrewards.editor.chat.enter_chance", NamedTextColor.GREEN, 
+                player.sendMessage(Component.translatable("mcclauneck.slayerrewards.editor.chat.enter_chance", NamedTextColor.GREEN, 
                     Component.text(clickedItem.getType().name(), NamedTextColor.YELLOW)));
                 return;
             }
@@ -274,7 +274,7 @@ public class MobDropEditor implements Listener {
                     pendingMoneyEdit.add(player.getUniqueId());
                     EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getView().getTopInventory());
                     player.closeInventory();
-                    player.sendMessage(Component.translatable("slayerrewards.editor.chat.enter_reward", NamedTextColor.GREEN));
+                    player.sendMessage(Component.translatable("mcclauneck.slayerrewards.editor.chat.enter_reward", NamedTextColor.GREEN));
                     requiresChatInput = true;
                 }
                 case 52 -> { // Save & Reload
@@ -336,7 +336,7 @@ public class MobDropEditor implements Listener {
                 if (!pendingChanceEdit.containsKey(player.getUniqueId()) && !pendingMoneyEdit.contains(player.getUniqueId())) {
                     EditorSession session = activeSessions.remove(player.getUniqueId());
                     EditorUtil.savePage(mobsFolder, session.mobName(), session.page(), event.getInventory());
-                    player.sendMessage(Component.translatable("slayerrewards.editor.chat.saved", NamedTextColor.GREEN));
+                    player.sendMessage(Component.translatable("mcclauneck.slayerrewards.editor.chat.saved", NamedTextColor.GREEN));
                 }
             }
         }
@@ -365,10 +365,10 @@ public class MobDropEditor implements Listener {
                 double chance = Double.parseDouble(event.getMessage());
                 chance = Math.max(0, Math.min(100, chance));
                 EditorUtil.updateChance(mobsFolder, session.mobName(), absoluteIndex + 1, chance);
-                player.sendMessage(Component.translatable("slayerrewards.editor.chat.updated_chance", NamedTextColor.GREEN, 
+                player.sendMessage(Component.translatable("mcclauneck.slayerrewards.editor.chat.updated_chance", NamedTextColor.GREEN, 
                     Component.text(chance + "%", NamedTextColor.YELLOW)));
             } catch (NumberFormatException e) {
-                player.sendMessage(Component.translatable("slayerrewards.editor.chat.invalid_number", NamedTextColor.RED));
+                player.sendMessage(Component.translatable("mcclauneck.slayerrewards.editor.chat.invalid_number", NamedTextColor.RED));
             }
         } else if (pendingMoneyEdit.contains(uuid)) {
             pendingMoneyEdit.remove(uuid);
@@ -377,7 +377,7 @@ public class MobDropEditor implements Listener {
             config.set("amount", event.getMessage());
             try { 
                 config.save(file); 
-                player.sendMessage(Component.translatable("slayerrewards.editor.chat.updated_reward", NamedTextColor.GREEN));
+                player.sendMessage(Component.translatable("mcclauneck.slayerrewards.editor.chat.updated_reward", NamedTextColor.GREEN));
             } catch (Exception ignored) {}
         }
 

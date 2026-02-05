@@ -46,12 +46,12 @@ public class SlayerRewardsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.translatable("msg.only_players", NamedTextColor.RED));
+            sender.sendMessage(Component.translatable("mcclauneck.slayerrewards.command.only_players", NamedTextColor.RED));
             return true;
         }
 
         if (!player.hasPermission("slayerrewards.admin")) {
-            player.sendMessage(Component.translatable("msg.permission.denied", NamedTextColor.RED));
+            player.sendMessage(Component.translatable("mcclauneck.slayerrewards.command.permission_denied", NamedTextColor.RED));
             return true;
         }
 
@@ -70,7 +70,7 @@ public class SlayerRewardsCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage(Component.translatable("slayerrewards.command.usage", NamedTextColor.RED));
+        player.sendMessage(Component.translatable("mcclauneck.slayerrewards.command.usage", NamedTextColor.RED));
         return true;
     }
 }
