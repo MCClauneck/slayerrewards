@@ -128,6 +128,9 @@ public class MobDropEditor implements Listener {
                 ItemMeta meta = item.getItemMeta();
                 List<Component> lore = meta.hasLore() ? meta.lore() : new ArrayList<>();
                 
+                // Clean existing editor lore to prevent duplication (fixes the stacking issue visually)
+                EditorUtil.cleanLore(lore);
+
                 lore.add(Component.text("----------------", NamedTextColor.YELLOW));
                 lore.add(Component.translatable("slayerrewards.editor.lore.chance", NamedTextColor.GOLD, 
                     Component.text(chance + "%")));
