@@ -12,7 +12,9 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadLocalRandom;
@@ -81,47 +83,55 @@ public class SlayerRewardsListener implements Listener {
         long currentLastModified = mobFile.lastModified();
         CachedConfig cached = configCache.get(mobType);
 
-        YamlConfiguration config;
-        if (cached != null && cached.lastModified() == currentLastModified) {
-            config = cached.config();
-        } else {
-            config = YamlConfiguration.loadConfiguration(mobFile);
-            configCache.put(mobType, new CachedConfig(currentLastModified, config));
+        // Reload config and re-deserialize items only if file changed or not cached
+        if (cached == null || cached.lastModified() != currentLastModified) {
+            YamlConfiguration config = YamlConfiguration.loadConfiguration(mobFile);
+            boolean cancelDefault = config.getBoolean("cancel_default_drops", false);
+            List<CustomDrop> parsedDrops = new ArrayList<>();
+
+            ConfigurationSection section = config.getConfigurationSection("item_drop");
+            if (section != null) {
+                for (String key : section.getKeys(false)) {
+                    double chance = section.getDouble(key + ".chance", 100.0);
+                    String base64 = section.getString(key + ".metadata");
+                    int amount = section.getInt(key + ".amount", 1);
+
+                    if (base64 != null && !base64.isEmpty()) {
+                        // Heavy Base64 deserialization happens here, once per file load
+                        ItemStack item = EditorUtil.itemStackFromBase64(base64);
+                        if (item != null) {
+                            parsedDrops.add(new CustomDrop(chance, item, amount));
+                        }
+                    }
+                }
+            }
+            cached = new CachedConfig(currentLastModified, parsedDrops, cancelDefault);
+            configCache.put(mobType, cached);
         }
 
         // Check if we should cancel vanilla drops
-        if (config.getBoolean("cancel_default_drops", false)) {
+        if (cached.cancelDefault()) {
             event.getDrops().clear();
         }
 
-        // Process custom drop list
-        ConfigurationSection section = config.getConfigurationSection("item_drop");
-        if (section == null) return;
-
-        for (String key : section.getKeys(false)) {
-            // Check chance
-            double chance = section.getDouble(key + ".chance", 100.0);
-            if (ThreadLocalRandom.current().nextDouble() * 100 < chance) {
-                
-                String base64 = section.getString(key + ".metadata");
-                if (base64 != null && !base64.isEmpty()) {
-                    ItemStack item = EditorUtil.itemStackFromBase64(base64);
-                    
-                    if (item != null) {
-                        // Ensure correct amount is set if overridden in config
-                        int amount = section.getInt(key + ".amount", item.getAmount());
-                        item.setAmount(amount);
-                        
-                        // Add to the drops list naturally
-                        event.getDrops().add(item);
-                    }
-                }
+        // Process pre-cached drop list
+        for (CustomDrop drop : cached.drops()) {
+            if (ThreadLocalRandom.current().nextDouble() * 100 < drop.chance()) {
+                // Must clone the item to avoid modifying the cached instance
+                ItemStack item = drop.item().clone();
+                item.setAmount(drop.amount());
+                event.getDrops().add(item);
             }
         }
     }
 
     /**
+     * Record to hold a single parsed drop.
+     */
+    private record CustomDrop(double chance, ItemStack item, int amount) {}
+
+    /**
      * Record to hold cached configuration data.
      */
-    private record CachedConfig(long lastModified, YamlConfiguration config) {}
+    private record CachedConfig(long lastModified, List<CustomDrop> drops, boolean cancelDefault) {}
 }
