@@ -34,7 +34,7 @@ public class SlayerRewardsProvider implements IReward {
      */
     public SlayerRewardsProvider(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.mobsFolder = new File(plugin.getDataFolder(), "extensions/SlayerRewards/mobs");
+        this.mobsFolder = new File(plugin.getDataFolder(), "extensions/configs/SlayerRewards/mobs");
         if (!mobsFolder.exists()) mobsFolder.mkdirs();
     }
 
