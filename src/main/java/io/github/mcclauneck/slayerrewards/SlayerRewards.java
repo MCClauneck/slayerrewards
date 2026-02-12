@@ -6,6 +6,7 @@ import io.github.mcclauneck.slayerrewards.editor.MobDropEditor;
 import io.github.mcclauneck.slayerrewards.listeners.SlayerRewardsListener;
 import io.github.mcclauneck.slayerrewards.tabcompleter.SlayerRewardsTabCompleter;
 import io.github.mcengine.mcextension.api.IMCExtension;
+import io.github.mcengine.mcextension.common.MCExtensionLogger;
 import io.github.mcengine.mcutil.MCUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -29,6 +30,7 @@ import java.util.concurrent.Executor;
  */
 public class SlayerRewards implements IMCExtension {
 
+    private final MCExtensionLogger logger = new MCExtensionLogger("MCEconomy", "SlayerRewards");
     private SlayerRewardsProvider provider;
     private MobDropEditor editor;
 
@@ -51,8 +53,8 @@ public class SlayerRewards implements IMCExtension {
         plugin.getServer().getPluginManager().registerEvents(editor, plugin);
 
         registerCommand(plugin);
-        
-        plugin.getLogger().info("[SlayerRewards] Extension loaded successfully.");
+
+        logger.info("Extension loaded successfully.");
     }
 
     /**
@@ -82,7 +84,7 @@ public class SlayerRewards implements IMCExtension {
             commandMap.register(plugin.getName(), cmd);
 
         } catch (Exception e) {
-            plugin.getLogger().severe("Failed to register /slayerrewards command: " + e.getMessage());
+            logger.error("Failed to register /slayerrewards command: " + e.getMessage());
         }
     }
 
@@ -96,7 +98,7 @@ public class SlayerRewards implements IMCExtension {
     public void onDisable(JavaPlugin plugin, Executor executor) {
         this.provider = null;
         this.editor = null;
-        plugin.getLogger().info("[SlayerRewards] Extension disabled.");
+        logger.info("Extension disabled.");
     }
 
     private String loadVersionFromYml() {
@@ -114,7 +116,7 @@ public class SlayerRewards implements IMCExtension {
         String version = loadVersionFromYml();
         if (version == null) {
             version = "0.0.0";
-            System.err.println("[SlayerRewards] Could not load version from extension.yml");
+            logger.error("Could not load version from extension.yml");
         }
 
         try {
@@ -126,7 +128,7 @@ public class SlayerRewards implements IMCExtension {
                 token
             );
         } catch (Exception e) {
-            System.err.println("[SlayerRewards] Update check failed: " + e.getMessage());
+            logger.error("Update check failed: " + e.getMessage());
             return false;
         }
     }
