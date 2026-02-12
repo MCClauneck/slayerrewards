@@ -6,12 +6,16 @@ import io.github.mcclauneck.slayerrewards.editor.MobDropEditor;
 import io.github.mcclauneck.slayerrewards.listeners.SlayerRewardsListener;
 import io.github.mcclauneck.slayerrewards.tabcompleter.SlayerRewardsTabCompleter;
 import io.github.mcengine.mcextension.api.IMCExtension;
+import io.github.mcengine.mcutil.MCUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
@@ -93,5 +97,37 @@ public class SlayerRewards implements IMCExtension {
         this.provider = null;
         this.editor = null;
         plugin.getLogger().info("[SlayerRewards] Extension disabled.");
+    }
+
+    private String loadVersionFromYml() {
+        InputStream stream = getClass().getClassLoader().getResourceAsStream("extension.yml");
+        if (stream == null) {
+            return null;
+        }
+
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new InputStreamReader(stream));
+        return config.getString("version");
+    }
+
+    @Override
+    public boolean checkUpdate(String url, String token) {
+        String version = loadVersionFromYml();
+        if (version == null) {
+            version = "0.0.0";
+            System.err.println("[SlayerRewards] Could not load version from extension.yml");
+        }
+
+        try {
+            return MCUtil.compareVersion(
+                "github",
+                version,
+                "MCClauneck",
+                "slayerrewards",
+                token
+            );
+        } catch (Exception e) {
+            System.err.println("[SlayerRewards] Update check failed: " + e.getMessage());
+            return false;
+        }
     }
 }
